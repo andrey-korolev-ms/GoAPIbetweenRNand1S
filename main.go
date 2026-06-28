@@ -1,7 +1,61 @@
 package main
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+type RequestAt1S struct {
+	Nomenclature string  `json:"nomenclature"`
+	Quantity     int     `json:"quantity"`
+	Price        float64 `json:"price"`
+	Total        float64 `json:"total"`
+}
+type ResponseAt1S struct {
+	Message string        `json:"message"`
+	Data    []RequestAt1S `json:"data"`
+}
+
+type RequestFromRN struct {
+	Nomenclature string  `json:"nomenclature"`
+	Quantity     int     `json:"quantity"`
+	Price        float64 `json:"price"`
+	Total        float64 `json:"total"`
+}
+type ResponseInRN struct {
+	Message string          `json:"message"`
+	Data    []RequestFromRN `json:"data"`
+}
+
+func accountingHandlerFromRN(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Принимаем данные от RN")
+	var request RequestFromRN
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Fprintln(w, "Данные от RN:", request)
+	response := ResponseInRN{
+		Message: "Success",
+		Data:    []RequestFromRN{request},
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func accountingHandlerAt1S(w http.ResponseWriter, r *http.Request) {
+	response := ResponseAt1S{
+		Message: "Success",
+		Data:    []RequestAt1S{},
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
 
 func main() {
-	fmt.Println("Hello, World!")
+	http.HandleFunc("/api/accounting", accountingHandlerFromRN)
+	http.HandleFunc("/api/1s", accountingHandlerAt1S)
+	fmt.Println("Сервер запущен на :8080")
+	http.ListenAndServe(":8080", nil)
 }
