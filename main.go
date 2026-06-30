@@ -41,7 +41,9 @@ func accountingHandlerFromRN(w http.ResponseWriter, r *http.Request) {
 		Data:    []RequestFromRN{request},
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func accountingHandlerAt1S(w http.ResponseWriter, r *http.Request) {
@@ -50,12 +52,16 @@ func accountingHandlerAt1S(w http.ResponseWriter, r *http.Request) {
 		Data:    []RequestAt1S{},
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func main() {
 	http.HandleFunc("/api/accounting", accountingHandlerFromRN)
 	http.HandleFunc("/api/1s", accountingHandlerAt1S)
 	fmt.Println("Сервер запущен на :8080")
-	http.ListenAndServe(":8080", nil)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		fmt.Println("Ошибка:", err)
+	}
 }
