@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type RequestAt1S struct {
@@ -58,10 +60,11 @@ func accountingHandlerAt1S(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/api/accounting", accountingHandlerFromRN)
-	http.HandleFunc("/api/1s", accountingHandlerAt1S)
+	r := chi.NewRouter()
+	r.Post("/api/accounting", accountingHandlerFromRN)
+	r.Post("/api/1s", accountingHandlerAt1S)
 	fmt.Println("Сервер запущен на :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		fmt.Println("Ошибка:", err)
 	}
 }
